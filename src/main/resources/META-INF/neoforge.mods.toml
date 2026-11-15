@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "%flatmod:rootid%"
+version = "${version}"
+displayName = "%flatmod:root%"
+description = '''This is an example description! Tell everyone what your mod is about!'''
+authors = "Me!"
+logoFile = "assets/%flatmod:rootid%/icon.png"
+
+[[mixins]]
+config = "%flatmod:rootid%.mixins.json"
+
+[[dependencies.%flatmod:rootid%]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.%flatmod:rootid%]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1]"
+ordering = "NONE"
+side = "BOTH"
