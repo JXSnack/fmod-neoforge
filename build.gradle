@@ -8,7 +8,7 @@ repositories {
     maven { url = "https://maven.neoforged.net/releases" }
     maven { url = "https://maven.parchmentmc.org" }
 
-            % flatmod : maven %
+    %flatmod:maven%
 }
 
 configurations {
@@ -75,8 +75,7 @@ dependencies {
     // To change the versions see the gradle.properties file
 
     // Dependencies
-    % flatmod:
-    dependencies %
+    %flatmod:dependencies%
 }
 
 processResources {
