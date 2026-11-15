@@ -30,7 +30,7 @@
             "https://libraries.minecraft.net/"
         ],
         "require": [
-            "maven@net.neoforged:neoforge 21.1.265",
+            "maven@net.neoforged:neoforge:sources 21.1.265",
 
             "maven@net.neoforged.fancymodloader:earlydisplay 4.0.45",
             "maven@net.neoforged.fancymodloader:loader 4.0.45",
