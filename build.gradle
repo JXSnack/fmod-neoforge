@@ -15,33 +15,54 @@ configurations {
     indirect {
         extendsFrom configurations.implementation
     }
+
+    flatmodUser {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom configurations.implementation
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        }
+    }
+
+    flatmodIndirect {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom configurations.indirect
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        }
+    }
 }
 
 tasks.register("flatmodClasspath") {
     dependsOn configurations.compileClasspath
 
-    // Captured at configuration time — configuration cache safe
     def allFiles = configurations.compileClasspath
-    def directFiles = configurations.implementation
-    def indirectFiles = configurations.indirect
+    def userFiles = configurations.flatmodUser
+    def indFiles = configurations.flatmodIndirect
     def outputFile = layout.projectDirectory.file("fmod-classpath.json")
 
     doLast {
-        def all      = allFiles.files.toSet()
-        def direct   = directFiles.files.toSet() - indirectFiles.files.toSet()
-        def indirect = indirectFiles.files.toSet()
-        def userFiles = direct + indirect
+        def all = allFiles.files.toSet()
+        def user = userFiles.files.toSet()
+        def indirect = indFiles.files.toSet()
+        def direct = user - indirect
+        def game = all - user
 
-        def gameFiles = all - userFiles
-        def mcJar = gameFiles.find { it.name.startsWith("neoforge-") }
-                ?: gameFiles.find { it.name.startsWith("client-") }
-                ?: gameFiles.first()
+        def mcJar = game.find { it.name.startsWith("neoforge-") }
+                ?: game.find { it.name.startsWith("client-") }
+                ?: game.first()
 
         def result = [
-                minecraft          : mcJar?.absolutePath ?: "",
-                minecraftLibraries : (gameFiles - [mcJar])*.absolutePath,
-                direct             : direct*.absolutePath,
-                indirect           : indirect*.absolutePath
+                minecraft         : mcJar?.absolutePath ?: "",
+                minecraftLibraries: (game - [mcJar])*.absolutePath,
+                direct            : direct*.absolutePath,
+                indirect          : indirect*.absolutePath
         ]
         outputFile.asFile.text = groovy.json.JsonOutput.toJson(result)
     }
