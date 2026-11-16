@@ -19,27 +19,31 @@ configurations {
 
 tasks.register("flatmodClasspath") {
     dependsOn configurations.compileClasspath
+
+    // Captured at configuration time — configuration cache safe
+    def allFiles = configurations.compileClasspath
+    def directFiles = configurations.implementation
+    def indirectFiles = configurations.indirect
+    def outputFile = layout.projectDirectory.file("fmod-classpath.json")
+
     doLast {
-        def allFiles = configurations.compileClasspath.files.toSet()
-        def directFiles = configurations.implementation.files.toSet() -
-                configurations.indirect.files.toSet()
-        def indirectFiles = configurations.indirect.files.toSet()
-        def userFiles = directFiles + indirectFiles
+        def all      = allFiles.files.toSet()
+        def direct   = directFiles.files.toSet() - indirectFiles.files.toSet()
+        def indirect = indirectFiles.files.toSet()
+        def userFiles = direct + indirect
 
-        def gameFiles = allFiles - userFiles
-
-        // NeoForge names its primary jar "neoforge-<version>.jar"
+        def gameFiles = all - userFiles
         def mcJar = gameFiles.find { it.name.startsWith("neoforge-") }
                 ?: gameFiles.find { it.name.startsWith("client-") }
                 ?: gameFiles.first()
 
         def result = [
-                minecraft         : mcJar?.absolutePath ?: "",
-                minecraftLibraries: (gameFiles - [mcJar])*.absolutePath,
-                direct            : directFiles*.absolutePath,
-                indirect          : indirectFiles*.absolutePath
+                minecraft          : mcJar?.absolutePath ?: "",
+                minecraftLibraries : (gameFiles - [mcJar])*.absolutePath,
+                direct             : direct*.absolutePath,
+                indirect           : indirect*.absolutePath
         ]
-        new File("fmod-classpath.json").text = groovy.json.JsonOutput.toJson(result)
+        outputFile.asFile.text = groovy.json.JsonOutput.toJson(result)
     }
 }
 
