@@ -26,17 +26,6 @@ configurations {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
         }
     }
-
-    flatmodIndirect {
-        canBeConsumed = false
-        canBeResolved = true
-        extendsFrom configurations.indirect
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
-        }
-    }
 }
 
 tasks.register("flatmodClasspath") {
@@ -44,25 +33,22 @@ tasks.register("flatmodClasspath") {
 
     def allFiles = configurations.compileClasspath
     def userFiles = configurations.flatmodUser
-    def indFiles = configurations.flatmodIndirect
     def outputFile = layout.projectDirectory.file("fmod-classpath.json")
 
     doLast {
         def all = allFiles.files.toSet()
         def user = userFiles.files.toSet()
-        def indirect = indFiles.files.toSet()
-        def direct = user - indirect
         def game = all - user
 
+        // compiledWithNeoForge produces the merged+patched jar; it's the neoforge- prefixed one
         def mcJar = game.find { it.name.startsWith("neoforge-") }
                 ?: game.find { it.name.startsWith("client-") }
                 ?: game.first()
 
         def result = [
-                minecraft         : mcJar?.absolutePath ?: "",
-                minecraftLibraries: (game - [mcJar])*.absolutePath,
-                direct            : direct*.absolutePath,
-                indirect          : indirect*.absolutePath
+                minecraft          : mcJar?.absolutePath ?: "",
+                minecraftLibraries : (game - [mcJar])*.absolutePath,
+                dependencies       : user*.absolutePath
         ]
         outputFile.asFile.text = groovy.json.JsonOutput.toJson(result)
     }
